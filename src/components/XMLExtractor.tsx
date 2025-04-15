@@ -21,7 +21,7 @@ interface XMLExtractorProps {
   filename: string;
 }
 
-const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
+const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, filename }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [extractionType, setExtractionType] = useState('element');
   const [specificElement, setSpecificElement] = useState('');
@@ -32,7 +32,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
   const { toast } = useToast();
 
   const extractData = () => {
-    if (!xmlString || !searchTerm) {
+    if (!inputXmlString || !searchTerm) {
       toast({
         title: "Extraction Failed",
         description: "Please provide an XML document and search criteria.",
@@ -43,7 +43,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
 
     try {
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      const xmlDoc = parser.parseFromString(inputXmlString, 'text/xml');
       
       const parserError = xmlDoc.querySelector('parsererror');
       if (parserError) {
@@ -276,7 +276,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
             placeholder="Enter search term..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={!xmlString}
+            disabled={!inputXmlString}
           />
         </div>
         
@@ -348,7 +348,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
         
         <Button 
           onClick={extractData} 
-          disabled={!xmlString || !searchTerm}
+          disabled={!inputXmlString || !searchTerm}
           className="w-full"
         >
           <Filter className="mr-2 h-4 w-4" />
