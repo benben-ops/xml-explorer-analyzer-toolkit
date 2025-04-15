@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { FileDown, Filter, CheckCircle, Eye, BarChart, List } from 'lucide-react';
+import { FileDown, Filter, CheckCircle, Eye, BarChart, List, FileX } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -52,6 +53,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
   const [includeParents, setIncludeParents] = useState(true);
   const [keepStructure, setKeepStructure] = useState(true);
   const [extractedXML, setExtractedXML] = useState<string | null>(null);
+  const [remainderXML, setRemainderXML] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<{
     matchCount: number;
     samples: Element[];
@@ -206,6 +208,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
         throw new Error(parserError.textContent || 'XML parsing error');
       }
       
+      // Create a copy of the original document for generating the remainder
+      const remainderDoc = parser.parseFromString(inputXmlString, 'text/xml');
+      
       const resultDoc = document.implementation.createDocument(null, 'extraction-results', null);
       const rootNode = resultDoc.documentElement;
       
@@ -214,10 +219,12 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
       rootNode.setAttribute('search-term', searchTerm);
       
       let matchedNodes: Element[] = [];
+      let nodesToRemove: Element[] = [];
       
       if (extractionType === 'element') {
         const elementName = specificElement || '*';
         const elements = xmlDoc.getElementsByTagName(elementName);
+        const remainderElements = remainderDoc.getElementsByTagName(elementName);
         
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i] as Element;
@@ -227,10 +234,16 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
             element.textContent?.includes(searchTerm)
           ) {
             matchedNodes.push(element);
+            
+            // Find corresponding node in remainder document for later removal
+            if (i < remainderElements.length) {
+              nodesToRemove.push(remainderElements[i] as Element);
+            }
           }
         }
       } else if (extractionType === 'attribute') {
         const allElements = xmlDoc.getElementsByTagName('*');
+        const remainderAllElements = remainderDoc.getElementsByTagName('*');
         
         for (let i = 0; i < allElements.length; i++) {
           const element = allElements[i] as Element;
@@ -240,6 +253,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
               const attrValue = element.getAttribute(specificAttribute);
               if (attrValue && attrValue.includes(searchTerm)) {
                 matchedNodes.push(element);
+                if (i < remainderAllElements.length) {
+                  nodesToRemove.push(remainderAllElements[i] as Element);
+                }
               }
             }
           } else {
@@ -251,6 +267,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
                 attr.value.includes(searchTerm)
               ) {
                 matchedNodes.push(element);
+                if (i < remainderAllElements.length) {
+                  nodesToRemove.push(remainderAllElements[i] as Element);
+                }
                 break;
               }
             }
@@ -258,6 +277,7 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
         }
       } else if (extractionType === 'content') {
         const allElements = xmlDoc.getElementsByTagName('*');
+        const remainderAllElements = remainderDoc.getElementsByTagName('*');
         
         for (let i = 0; i < allElements.length; i++) {
           const element = allElements[i] as Element;
@@ -275,6 +295,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
             element.textContent.includes(searchTerm)
           ) {
             matchedNodes.push(element);
+            if (i < remainderAllElements.length) {
+              nodesToRemove.push(remainderAllElements[i] as Element);
+            }
           }
         }
       }
@@ -321,12 +344,22 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
         rootNode.appendChild(importedNode);
       });
       
+      // Remove matched nodes from the remainder document
+      nodesToRemove.forEach(node => {
+        if (node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      });
+      
       const serializer = new XMLSerializer();
       let xmlString = serializer.serializeToString(resultDoc);
+      let remainderString = serializer.serializeToString(remainderDoc);
       
       xmlString = formatXML(xmlString);
+      remainderString = formatXML(remainderString);
       
       setExtractedXML(xmlString);
+      setRemainderXML(remainderString);
       
       toast({
         title: "Extraction Complete",
@@ -410,6 +443,25 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
     toast({
       title: "Download Started",
       description: "Your extracted XML file is being downloaded.",
+    });
+  };
+
+  const downloadRemainderXML = () => {
+    if (!remainderXML) return;
+    
+    const blob = new Blob([remainderXML], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `remainder-${filename || 'data.xml'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Download Started",
+      description: "Your remainder XML file is being downloaded.",
     });
   };
 
@@ -548,7 +600,11 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
       </CardContent>
       
       {extractedXML && (
-        <CardFooter className="bg-secondary/30 flex justify-end">
+        <CardFooter className="bg-secondary/30 flex flex-wrap justify-end gap-2">
+          <Button onClick={downloadRemainderXML} variant="outline">
+            <FileX className="mr-2 h-4 w-4" />
+            Download Remainder XML
+          </Button>
           <Button onClick={downloadExtractedXML} variant="outline">
             <FileDown className="mr-2 h-4 w-4" />
             Download Extracted XML
@@ -697,3 +753,4 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString: inputXmlString, 
 };
 
 export default XMLExtractor;
+
