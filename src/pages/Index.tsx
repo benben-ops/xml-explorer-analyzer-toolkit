@@ -8,7 +8,8 @@ import XMLAnalyzer from '@/components/XMLAnalyzer';
 import XMLExtractor from '@/components/XMLExtractor';
 import { SearchOptions } from '@/components/XMLSearch';
 import { useToast } from '@/components/ui/use-toast';
-import { FileText, Github } from 'lucide-react';
+import { FileText, Github, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Index = () => {
   const [xmlContent, setXmlContent] = useState<string>('');
