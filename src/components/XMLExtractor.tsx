@@ -6,6 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,33 +45,27 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
       
-      // Check for parsing errors
       const parserError = xmlDoc.querySelector('parsererror');
       if (parserError) {
         throw new Error(parserError.textContent || 'XML parsing error');
       }
       
-      // Create a new XML document for the extraction result
       const resultDoc = document.implementation.createDocument(null, 'extraction-results', null);
       const rootNode = resultDoc.documentElement;
       
-      // Add metadata
       rootNode.setAttribute('source', filename);
       rootNode.setAttribute('extracted', new Date().toISOString());
       rootNode.setAttribute('search-term', searchTerm);
       
       let matchedNodes: Element[] = [];
       
-      // Extract based on criteria
       if (extractionType === 'element') {
-        // Search in element names
         const elementName = specificElement || '*';
         const elements = xmlDoc.getElementsByTagName(elementName);
         
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i] as Element;
           
-          // Check if the element or its content contains the search term
           if (
             element.nodeName.includes(searchTerm) || 
             element.textContent?.includes(searchTerm)
@@ -79,13 +74,11 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
           }
         }
       } else if (extractionType === 'attribute') {
-        // Search in attribute names/values
         const allElements = xmlDoc.getElementsByTagName('*');
         
         for (let i = 0; i < allElements.length; i++) {
           const element = allElements[i] as Element;
           
-          // If specific attribute provided, only check that one
           if (specificAttribute) {
             if (element.hasAttribute(specificAttribute)) {
               const attrValue = element.getAttribute(specificAttribute);
@@ -94,7 +87,6 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
               }
             }
           } else {
-            // Check all attributes
             const attributes = element.attributes;
             for (let j = 0; j < attributes.length; j++) {
               const attr = attributes[j];
@@ -103,19 +95,16 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
                 attr.value.includes(searchTerm)
               ) {
                 matchedNodes.push(element);
-                break; // Only add the element once
+                break;
               }
             }
           }
         }
       } else if (extractionType === 'content') {
-        // Search in element content/values
         const allElements = xmlDoc.getElementsByTagName('*');
         
         for (let i = 0; i < allElements.length; i++) {
           const element = allElements[i] as Element;
-          // Check if the content contains the search term
-          // and the element doesn't have child elements (only text)
           let hasOnlyTextContent = true;
           for (let j = 0; j < element.childNodes.length; j++) {
             if (element.childNodes[j].nodeType === Node.ELEMENT_NODE) {
@@ -134,13 +123,11 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
         }
       }
       
-      // If we need to include parent context and keep structure
       if (includeParents && keepStructure) {
         const processedPaths = new Set<string>();
         const newMatchedNodes: Element[] = [];
         
         matchedNodes.forEach(node => {
-          // Build a path to identify this node
           let currentNode: Node | null = node;
           let path = '';
           while (currentNode && currentNode.nodeName !== '#document') {
@@ -148,21 +135,15 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
             currentNode = currentNode.parentNode;
           }
           
-          // If we haven't processed this path yet
           if (!processedPaths.has(path)) {
             processedPaths.add(path);
             
-            // Include the node with its full parent structure
             let targetNode = node;
             if (targetNode.parentNode && targetNode.parentNode.nodeType === Node.ELEMENT_NODE) {
-              // Clone the parent structure
-              const clonedParent = (targetNode.parentNode as Element).cloneNode(false) as Element;
-              const parentResult = cloneParentStructure(targetNode.parentNode as Element, resultDoc);
-              
-              if (parentResult) {
-                newMatchedNodes.push(parentResult);
+              const parentElement = cloneParentStructure(targetNode.parentNode as Element, resultDoc);
+              if (parentElement) {
+                newMatchedNodes.push(parentElement);
               } else {
-                // If we couldn't build parent structure, just add the node
                 newMatchedNodes.push(node);
               }
             } else {
@@ -171,13 +152,11 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
           }
         });
         
-        // Replace with the structured nodes
         if (newMatchedNodes.length > 0) {
           matchedNodes = newMatchedNodes;
         }
       }
       
-      // Add results to output document
       matchedNodes.forEach(node => {
         const importedNode = resultDoc.importNode(
           includeParents ? cloneWithParents(node) : node, 
@@ -186,11 +165,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
         rootNode.appendChild(importedNode);
       });
       
-      // Convert to string
       const serializer = new XMLSerializer();
       let xmlString = serializer.serializeToString(resultDoc);
       
-      // Format the XML (simple indentation)
       xmlString = formatXML(xmlString);
       
       setExtractedXML(xmlString);
@@ -209,19 +186,15 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
     }
   };
   
-  // Helper function to recursively clone parent structure
   const cloneParentStructure = (node: Element, doc: Document): Element | null => {
     if (!node || node.nodeType !== Node.ELEMENT_NODE) return null;
     
-    // Create a new element with the same name
     const newElement = doc.createElement(node.nodeName);
     
-    // Copy attributes
     Array.from(node.attributes).forEach(attr => {
       newElement.setAttribute(attr.name, attr.value);
     });
     
-    // If this node has a parent, create that too
     if (node.parentNode && node.parentNode.nodeType === Node.ELEMENT_NODE) {
       const parentElement = cloneParentStructure(node.parentNode as Element, doc);
       if (parentElement) {
@@ -233,11 +206,9 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
     return newElement;
   };
   
-  // Clone a node with its full parent structure
   const cloneWithParents = (node: Element): Element => {
     const clone = node.cloneNode(true) as Element;
     
-    // If we want to retain parent elements
     if (node.parentNode && node.parentNode.nodeType === Node.ELEMENT_NODE) {
       const parentClone = (node.parentNode as Element).cloneNode(false) as Element;
       parentClone.appendChild(clone);
@@ -247,22 +218,19 @@ const XMLExtractor: React.FC<XMLExtractorProps> = ({ xmlString, filename }) => {
     return clone;
   };
   
-  // Function to format XML with indentation
   const formatXML = (xml: string): string => {
     let formatted = '';
     let indent = '';
-    const tab = '  '; // 2 spaces
+    const tab = '  ';
     
     xml.split(/>\s*</).forEach(node => {
       if (node.match(/^\/\w/)) {
-        // Closing tag
         indent = indent.substring(tab.length);
       }
       
       formatted += indent + '<' + node + '>\n';
       
       if (node.match(/^<?\w[^>]*[^\/]$/) && !node.match(/^<?\w[^>]*\/>/)) {
-        // Opening tag and not self-closing
         indent += tab;
       }
     });
