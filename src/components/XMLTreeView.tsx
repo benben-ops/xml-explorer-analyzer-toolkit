@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, ChevronDown, Hash, Info } from 'lucide-react';
 import {
   Card,
@@ -38,6 +38,7 @@ const XMLTreeView: React.FC<XMLTreeViewProps> = ({
   const [xmlTree, setXmlTree] = useState<XMLNode | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [matchingNodes, setMatchingNodes] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Parse XML string to tree structure
@@ -162,8 +163,55 @@ const XMLTreeView: React.FC<XMLTreeViewProps> = ({
     }
   }, [xmlString, toast]);
 
+  // Update matching nodes when search term changes
+  useEffect(() => {
+    if (!searchTerm || !xmlTree) {
+      setMatchingNodes(new Set());
+      return;
+    }
+
+    const newMatchingNodes = new Set<string>();
+    
+    // Find all nodes that match the search term
+    const findMatchingNodes = (node: XMLNode) => {
+      const nodeText = node.name || node.value || '';
+      const attributeText = node.attributes 
+        ? Object.entries(node.attributes).map(([k, v]) => `${k}="${v}"`).join(' ')
+        : '';
+        
+      const nodeContains = searchTerm && (
+        nodeText.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        attributeText.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      if (nodeContains && node.path) {
+        newMatchingNodes.add(node.path);
+        
+        // Add all parent paths to expanded nodes
+        if (node.path) {
+          let currentPath = node.path;
+          const parts = currentPath.split('/');
+          
+          while (parts.length > 1) {
+            parts.pop();
+            currentPath = parts.join('/');
+            if (currentPath) setExpandedNodes(prev => new Set([...prev, currentPath]));
+          }
+        }
+      }
+      
+      // Recursively check children
+      if (node.children) {
+        node.children.forEach(findMatchingNodes);
+      }
+    };
+    
+    findMatchingNodes(xmlTree);
+    setMatchingNodes(newMatchingNodes);
+  }, [searchTerm, xmlTree]);
+
   // Toggle node expansion
-  const toggleNode = (path: string) => {
+  const toggleNode = useCallback((path: string) => {
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(path)) {
@@ -173,17 +221,17 @@ const XMLTreeView: React.FC<XMLTreeViewProps> = ({
       }
       return newSet;
     });
-  };
+  }, []);
 
   // Handle node selection
-  const handleNodeClick = (path: string) => {
+  const handleNodeClick = useCallback((path: string) => {
     if (onNodeSelect) {
       onNodeSelect(path);
     }
-  };
+  }, [onNodeSelect]);
 
   // Highlight text based on search term
-  const highlightText = (text: string, term: string) => {
+  const highlightText = useCallback((text: string, term: string) => {
     if (!term || !text) return text;
     
     try {
@@ -197,47 +245,14 @@ const XMLTreeView: React.FC<XMLTreeViewProps> = ({
       // If regex is invalid, return original text
       return text;
     }
-  };
+  }, []);
 
   // Recursive rendering of XML tree
-  const renderNode = (node: XMLNode, level: number = 0) => {
+  const renderNode = useCallback((node: XMLNode, level: number = 0) => {
     const isExpanded = node.path ? expandedNodes.has(node.path) : false;
     const isSelected = node.path === selectedPath;
     const hasChildren = node.children && node.children.length > 0;
-    
-    // Check if node or any child matches search term
-    const containsSearchTerm = (node: XMLNode): boolean => {
-      const nodeText = node.name || node.value || '';
-      const attributeText = node.attributes 
-        ? Object.entries(node.attributes).map(([k, v]) => `${k}="${v}"`).join(' ')
-        : '';
-        
-      const nodeContains = searchTerm && (
-        nodeText.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        attributeText.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      
-      if (nodeContains) return true;
-      
-      if (node.children) {
-        return node.children.some(child => containsSearchTerm(child));
-      }
-      
-      return false;
-    };
-    
-    const matchesSearch = searchTerm ? containsSearchTerm(node) : false;
-    
-    // Expand parent nodes of matches
-    useEffect(() => {
-      if (matchesSearch && node.path) {
-        setExpandedNodes(prev => {
-          const newSet = new Set(prev);
-          newSet.add(node.path as string);
-          return newSet;
-        });
-      }
-    }, [searchTerm, matchesSearch, node.path]);
+    const matchesSearch = node.path ? matchingNodes.has(node.path) : false;
     
     // Render the node based on its type
     switch (node.type) {
@@ -347,7 +362,7 @@ const XMLTreeView: React.FC<XMLTreeViewProps> = ({
       default:
         return null;
     }
-  };
+  }, [expandedNodes, selectedPath, matchingNodes, searchTerm, handleNodeClick, toggleNode, highlightText]);
 
   return (
     <Card className="w-full shadow-md h-full">
