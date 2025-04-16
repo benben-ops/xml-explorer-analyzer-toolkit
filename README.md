@@ -66,7 +66,7 @@ A comprehensive browser-based toolkit for working with XML files. This applicati
 
 ## Getting Started
 
-1. Visit the application at [BenBen XML Processing Tools](https://your-deployment-url.com)
+1. Visit the application at [BenBen XML Processing Tools](https://xml-explorer-analyzer-toolkit.lovable.app/)
 2. Upload an XML file using the uploader at the top of the page
 3. Use the Tree View to explore the structure
 4. Use the Search functionality to find specific content
