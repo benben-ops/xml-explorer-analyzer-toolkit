@@ -140,7 +140,7 @@ const Index = () => {
       <footer className="mt-12 py-6 text-center text-gray-500 text-sm">
         <p>© 2025 XML Processing Tools. Built with React and Tailwind CSS.</p>
         <p className="mt-1">This is a client-side application. Your XML files are processed locally in your browser.</p>
-        <p className="mt-1">
+        <div className="mt-2 flex justify-center gap-4">
           <a 
             href="https://benben.sk/" 
             target="_blank" 
@@ -149,11 +149,18 @@ const Index = () => {
           >
             BENBEN.SK
           </a>
-        </p>
+          <a 
+            href="https://github.com/benben-ops/xml-explorer-analyzer-toolkit#readme" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="text-primary hover:underline"
+          >
+            What is it for?
+          </a>
+        </div>
       </footer>
     </div>
   );
 };
 
 export default Index;
-

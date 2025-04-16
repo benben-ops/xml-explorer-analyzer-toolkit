@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
 
-## Project info
+# BenBen XML Processing Tools
 
-**URL**: https://lovable.dev/projects/41b3b232-145c-41c2-a4a5-2e657cdb7b8e
+A comprehensive browser-based toolkit for working with XML files. This application allows users to visualize, search, analyze, and extract data from XML files without sending any data to a server - everything happens locally in your browser.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### 1. XML Uploader
+- Drag and drop or click to upload XML files
+- Handles large XML files efficiently
+- Provides immediate validation feedback
+- Displays filename and file size information
 
-**Use Lovable**
+### 2. XML Tree View
+- Interactive tree visualization of XML structure
+- Collapsible nodes for exploring complex hierarchies
+- Highlighting of search results within the tree
+- Click nodes to view details and select specific paths
+- Easy navigation through even the largest XML documents
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/41b3b232-145c-41c2-a4a5-2e657cdb7b8e) and start prompting.
+### 3. XML Search
+- Powerful search capabilities across XML content
+- Options for:
+  - Case-sensitive or case-insensitive searching
+  - Whole word matching
+  - Regular expression support
+  - Targeting specific parts of XML (tags, attributes, values, or all)
+- Real-time highlighting of search results in the tree view
 
-Changes made via Lovable will be committed automatically to this repo.
+### 4. XML Analyzer
+- Automated analysis of XML structure and content
+- Statistics on:
+  - Number of elements
+  - Depth of nesting
+  - Tag distribution
+  - Attribute usage
+  - Value patterns
+- Identification of potential issues or optimization opportunities
 
-**Use your preferred IDE**
+### 5. XML Data Extraction
+- Extract specific portions of XML based on XPath-like selectors
+- Preview extraction results before processing
+  - View match count and structure
+  - See sample data
+  - Validate selectors
+- Download options:
+  - Download only the extracted data as a new XML file
+  - Download the remainder XML (original file with extracted elements removed)
+- Support for multiple extraction patterns
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Use Cases
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **XML Data Analysis**: Quickly understand complex XML structures
+- **XML Data Migration**: Extract specific portions of XML for import into other systems
+- **XML Debugging**: Search through XML to locate specific data or issues
+- **XML Data Cleaning**: Remove unwanted sections while preserving the rest
+- **XML Document Exploration**: Navigate and understand unfamiliar XML schemas
 
-Follow these steps:
+## Technical Details
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Built with React and TypeScript
+- Styled using Tailwind CSS
+- Uses modern browser APIs for efficient XML parsing
+- All processing happens client-side - your data never leaves your browser
+- Responsive design works on desktop and mobile devices
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+1. Visit the application at [BenBen XML Processing Tools](https://your-deployment-url.com)
+2. Upload an XML file using the uploader at the top of the page
+3. Use the Tree View to explore the structure
+4. Use the Search functionality to find specific content
+5. Analyze the XML for insights
+6. Extract and download specific portions as needed
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Privacy
 
-**Edit a file directly in GitHub**
+BenBen XML Processing Tools processes all data locally in your browser. No XML data is ever sent to a server, ensuring complete privacy and security for your sensitive data.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Contributing
 
-**Use GitHub Codespaces**
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Support
 
-## What technologies are used for this project?
+For support or feature requests, please open an issue on GitHub or contact us through [BenBen.SK](https://benben.sk/).
 
-This project is built with:
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/41b3b232-145c-41c2-a4a5-2e657cdb7b8e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+© 2025 [BenBen.SK](https://benben.sk/)
