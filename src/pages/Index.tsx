@@ -80,10 +80,10 @@ const Index = () => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <FileText className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-primary">XML Processing Tools</h1>
+            <h1 className="text-3xl font-bold text-primary">BenBen XML Processing Tools</h1>
           </div>
           <a
-            href="https://github.com/your-username/xml-processing-tools"
+            href="https://github.com/benben-ops/xml-explorer-analyzer-toolkit"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors"
@@ -140,9 +140,20 @@ const Index = () => {
       <footer className="mt-12 py-6 text-center text-gray-500 text-sm">
         <p>© 2025 XML Processing Tools. Built with React and Tailwind CSS.</p>
         <p className="mt-1">This is a client-side application. Your XML files are processed locally in your browser.</p>
+        <p className="mt-1">
+          <a 
+            href="https://benben.sk/" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="text-primary hover:underline"
+          >
+            BENBEN.SK
+          </a>
+        </p>
       </footer>
     </div>
   );
 };
 
 export default Index;
+
